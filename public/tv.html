@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>My Tec Odonto — Painel TV</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#04070F;--card:#0B0F1C;--card2:#0F1525;--border:rgba(255,255,255,.06);
+  --accent:#00C9A7;--accent2:#FF6B35;--accent3:#5C9EFF;--purple:#B48AFF;
+  --yellow:#F0B429;--red:#FF4D4D;--green:#22C55E;
+  --text:#E8EAF0;--text2:#7E8799;--text3:#3A4058;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden}
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(0,201,167,.014) 1px,transparent 1px),linear-gradient(90deg,rgba(0,201,167,.014) 1px,transparent 1px);
+  background-size:52px 52px;animation:drift 25s linear infinite;
+}
+@keyframes drift{from{background-position:0 0}to{background-position:52px 52px}}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 55% 40% at 10% 8%,rgba(0,201,167,.05) 0%,transparent 70%),
+             radial-gradient(ellipse 45% 35% at 90% 92%,rgba(92,158,255,.04) 0%,transparent 70%);
+}
+.screen{position:relative;z-index:1;width:100vw;height:100vh;display:grid;grid-template-rows:68px 1fr 50px}
+
+/* HEADER */
+.header{display:flex;align-items:center;justify-content:space-between;padding:0 28px;border-bottom:1px solid var(--border);background:rgba(4,7,15,.9);backdrop-filter:blur(16px)}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:19px}
+.logo-name{font-family:'Bebas Neue',sans-serif;letter-spacing:2px;font-size:19px;background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:9px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;margin-top:1px}
+.kpi-row{display:flex;align-items:center;gap:6px}
+.kpi-sep{width:1px;height:30px;background:var(--border)}
+.kpi{display:flex;flex-direction:column;align-items:center;padding:0 22px}
+.kpi-label{font-size:9px;color:var(--text3);letter-spacing:.8px;text-transform:uppercase}
+.kpi-val{font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-size:30px;line-height:1;margin-top:1px}
+.clock{text-align:right}
+.clock-time{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:30px;letter-spacing:3px;color:var(--accent)}
+.clock-date{font-size:10px;color:var(--text3);letter-spacing:.4px;margin-top:2px}
+
+/* MAIN */
+.main{display:grid;gap:8px;padding:8px 12px;overflow:hidden}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 15px;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:14px 14px 0 0}
+.c-orange::before{background:linear-gradient(90deg,var(--accent2),transparent)}
+.c-purple::before{background:linear-gradient(90deg,var(--purple),transparent)}
+.c-green::before {background:linear-gradient(90deg,var(--accent),transparent)}
+.c-red::before   {background:linear-gradient(90deg,var(--red),transparent)}
+.c-yellow::before{background:linear-gradient(90deg,var(--yellow),transparent)}
+.card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-shrink:0}
+.card-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:2px;color:var(--text2);text-transform:uppercase}
+.live{margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-out infinite;flex-shrink:0}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,201,167,.6)}70%{box-shadow:0 0 0 7px rgba(0,201,167,0)}100%{box-shadow:0 0 0 0 rgba(0,201,167,0)}}
+.chart-wrap{flex:1;position:relative;min-height:0}
+
+/* FEED */
+.feed{flex:1;display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.feed-row{display:flex;align-items:center;gap:8px;padding:6px 9px;background:var(--card2);border:1px solid var(--border);border-radius:8px;animation:fin .35s ease}
+@keyframes fin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.feed-icon{font-size:15px;flex-shrink:0}
+.feed-info{flex:1;min-width:0}
+.feed-prod{font-size:11px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feed-meta{font-size:9px;color:var(--text3);margin-top:1px}
+.feed-val{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--green);flex-shrink:0}
+.empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text3)}
+
+/* META CENTER LABEL */
+.meta-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);text-align:center;pointer-events:none}
+.meta-pct{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:1px;line-height:1}
+.meta-lbl{font-size:9px;color:var(--text3);letter-spacing:.6px;text-transform:uppercase;margin-top:2px}
+
+/* TICKER */
+.footer{border-top:1px solid var(--border);background:rgba(0,0,0,.55);display:flex;align-items:center;padding:0 16px;overflow:hidden}
+.ticker-tag{font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:2px;color:var(--accent);white-space:nowrap;flex-shrink:0;padding-right:16px;border-right:1px solid var(--border);margin-right:16px}
+.ticker-track{flex:1;overflow:hidden}
+.ticker-inner{display:flex;gap:40px;align-items:center;white-space:nowrap;animation:scroll 38s linear infinite}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ti{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:6px}
+.ti b{color:var(--text);font-weight:600}
+.flash{position:fixed;top:14px;right:14px;z-index:999;background:rgba(0,201,167,.12);border:1px solid rgba(0,201,167,.35);border-radius:7px;padding:5px 13px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);opacity:0;transition:opacity .3s;pointer-events:none}
+.flash.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">🦷</div>
+      <div>
+        <div class="logo-name">My Tec Odonto Soluções Ltda</div>
+        <div class="logo-sub">Painel de Operações · São Luís – MA</div>
+      </div>
+    </div>
+    <div class="kpi-row" id="kpiRow"></div>
+    <div class="clock">
+      <div class="clock-time" id="clockTime">--:--:--</div>
+      <div class="clock-date" id="clockDate"></div>
+      <div id="tvConnectStatus" style="margin-top:6px;display:flex;align-items:center;gap:5px;opacity:.4;transition:opacity .5s">
+        <span style="width:6px;height:6px;border-radius:50%;background:#22C55E;display:inline-block;box-shadow:0 0 6px #22C55E;animation:pulse 2s infinite"></span>
+        <span style="font-size:9px;color:#22C55E;font-family:'JetBrains Mono',monospace;letter-spacing:.5px">SINCRONIZADO</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main" style="grid-template-columns:1.1fr 1.1fr 1fr;grid-template-rows:1fr 1fr">
+
+    <div class="card c-orange" style="grid-column:1;grid-row:1/3">
+      <div class="card-head">
+        <div class="card-dot" style="background:var(--accent2)"></div>
+        <div class="card-title">🏆 Top 10 Produtos Mais Vendidos</div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartProds"></canvas></div>
+    </div>
+
+    <div class="card c-purple" style="grid-column:2;grid-row:1/3">
+      <div class="card-head">
+        <div class="card-dot" style="background:var(--purple)"></div>
+        <div class="card-title">👥 Top 10 Clientes por Receita</div>
+      </div>
+      <div class="chart-wrap"><canvas id="chartClients"></canvas></div>
+    </div>
+
+    <div style="grid-column:3;grid-row:1/3;display:grid;grid-template-rows:1fr 1fr 1fr;gap:8px">
+
+      <div class="card c-green">
+        <div class="card-head">
+          <div class="card-dot" style="background:var(--accent)"></div>
+          <div class="card-title">📈 Pedidos por Dia — 14 Dias</div>
+          <div class="live"></div>
+        </div>
+        <div class="chart-wrap"><canvas id="chartOrders"></canvas></div>
+      </div>
+
+      <div class="card c-red">
+        <div class="card-head">
+          <div class="card-dot" style="background:var(--red)"></div>
+          <div class="card-title">⚠ Estoque Crítico ≤ 5 un.</div>
+        </div>
+        <div class="chart-wrap" id="stockWrap"><canvas id="chartStock"></canvas></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:8px">
+
+        <div class="card c-yellow" style="padding:10px 12px">
+          <div class="card-head" style="margin-bottom:5px">
+            <div class="card-dot" style="background:var(--yellow)"></div>
+            <div class="card-title" style="font-size:10px">🎯 Meta Anual</div>
+          </div>
+          <div class="chart-wrap" style="position:relative" id="metaWrap">
+            <canvas id="chartMeta"></canvas>
+            <div class="meta-center" id="metaCenter">
+              <div class="meta-pct" id="metaPct" style="color:var(--yellow);font-size:24px">--%</div>
+              <div class="meta-lbl">da meta</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card c-green" style="padding:10px 12px">
+          <div class="card-head" style="margin-bottom:5px">
+            <div class="card-dot" style="background:var(--accent3)"></div>
+            <div class="card-title" style="font-size:10px">🛒 Últimas Vendas</div>
+            <div class="live" style="background:var(--accent3);box-shadow:none;animation:none"></div>
+          </div>
+          <div class="feed" id="feedSales"></div>
+        </div>
+
+        <div class="card c-green" style="padding:10px 12px">
+          <div class="card-head" style="margin-bottom:5px">
+            <div class="card-dot" style="background:var(--accent)"></div>
+            <div class="card-title" style="font-size:10px">⭐ Google Reviews</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:0">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:38px;line-height:1;color:var(--yellow)">5.0</div>
+            <div style="color:var(--yellow);font-size:13px;letter-spacing:2px">★★★★★</div>
+            <div style="font-size:9px;color:var(--text3);letter-spacing:.4px">9 AVALIAÇÕES</div>
+            <div style="width:100%;position:relative;flex:1;min-height:0;margin-top:4px">
+              <canvas id="chartReviews"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="ticker-tag">AO VIVO</div>
+    <div class="ticker-track"><div class="ticker-inner" id="tickerInner"></div></div>
+  </footer>
+</div>
+<div class="flash" id="flash">↻ Atualizado</div>
+
+<script>
+var KEYS={products:'mytec_products',movements:'mytec_movements',customers:'mytec_customers',meta:'mytec_meta_anual'};
+var fmtR=function(v){return 'R$ '+(parseFloat(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});};
+var short=function(s,n){n=n||22;return s&&s.length>n?s.slice(0,n)+'…':(s||'—');};
+var load=function(k){try{var r=localStorage.getItem(k);return r?JSON.parse(r):[]}catch(e){return [];}};
+var loadNum=function(k){try{var r=localStorage.getItem(k);return r?parseFloat(JSON.parse(r))||0:0;}catch(e){return 0;}};
+
+function tick(){
+  var n=new Date();
+  document.getElementById('clockTime').textContent=n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('clockDate').textContent=n.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+}
+setInterval(tick,1000);tick();
+
+var _charts={};
+function mkChart(id,cfg){
+  if(_charts[id]){try{_charts[id].destroy();}catch(e){}delete _charts[id];}
+  var el=document.getElementById(id);if(!el)return;
+  _charts[id]=new Chart(el,cfg);
+}
+
+var btt={
+  backgroundColor:'#0B0F1C',borderColor:'rgba(255,255,255,.08)',borderWidth:1,
+  titleColor:'#E8EAF0',bodyColor:'#7E8799',
+  titleFont:{family:'JetBrains Mono, monospace',size:10},
+  bodyFont:{family:'JetBrains Mono, monospace',size:10},
+};
+var gc='rgba(255,255,255,.04)';
+var tc='#3A4058';
+var tf={family:'JetBrains Mono, monospace',size:9};
+
+var PC=['#FF6B35','#FF8044','#FF9553','#FFAA62','#FFBF71','#FFD480','#FFE18F','#FFEE9E','#FFF6B8','#FFFBD8'];
+var CC=['#B48AFF','#A37AEE','#926ADD','#815ACC','#704ABB','#5F3AAA','#4E2A99','#3D1A88','#2C0A77','#1B0066'];
+
+function render(){
+  var products=load(KEYS.products);
+  var movements=load(KEYS.movements);
+  var customers=load(KEYS.customers);
+  var metaAnual=loadNum(KEYS.meta);
+  var sales=movements.filter(function(m){return m.type==='venda';});
+  var low=products.filter(function(p){return(parseInt(p.qty)||0)<=5;}).sort(function(a,b){return(parseInt(a.qty)||0)-(parseInt(b.qty)||0);});
+
+  document.getElementById('kpiRow').innerHTML=[
+    {label:'Pedidos',val:sales.length,color:'var(--accent3)'},
+    {label:'Clientes',val:customers.length,color:'var(--purple)'},
+    {label:'Est. Crítico',val:low.length,color:low.length?'var(--red)':'var(--green)'},
+  ].map(function(k,i,a){
+    return '<div class="kpi"><div class="kpi-label">'+k.label+'</div><div class="kpi-val" style="color:'+k.color+'">'+k.val+'</div></div>'+(i<a.length-1?'<div class="kpi-sep"></div>':'');
+  }).join('');
+
+  var pm={};
+  sales.forEach(function(m){if(!pm[m.productName])pm[m.productName]={name:m.productName,total:0,qty:0};pm[m.productName].total+=(m.total||0);pm[m.productName].qty+=(m.qty||0);});
+  var tp=Object.values(pm).sort(function(a,b){return b.total-a.total;}).slice(0,10);
+  mkChart('chartProds',{
+    type:'bar',
+    data:{labels:tp.map(function(p){return short(p.name,18);}),datasets:[{data:tp.map(function(p){return p.total;}),backgroundColor:PC.map(function(c){return c+'BB';}),borderColor:PC,borderWidth:1,borderRadius:4}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{...btt,callbacks:{label:function(ctx){return ' '+fmtR(ctx.parsed.x)+' — '+tp[ctx.dataIndex].qty+' un.';},}}},
+      scales:{x:{ticks:{color:tc,font:tf,callback:function(v){return 'R$'+v.toLocaleString('pt-BR');}},grid:{color:gc}},y:{ticks:{color:'#7E8799',font:{family:'JetBrains Mono, monospace',size:8}},grid:{display:false}}}
+    }
+  });
+
+  var cm={};
+  sales.forEach(function(m){if(!m.client||m.client==='—')return;if(!cm[m.client])cm[m.client]={name:m.client,total:0,orders:0};cm[m.client].total+=(m.total||0);cm[m.client].orders++;});
+  var tc10=Object.values(cm).sort(function(a,b){return b.total-a.total;}).slice(0,10);
+  mkChart('chartClients',{
+    type:'bar',
+    data:{labels:tc10.map(function(c){return short(c.name,18);}),datasets:[{data:tc10.map(function(c){return c.total;}),backgroundColor:CC.map(function(c){return c+'BB';}),borderColor:CC,borderWidth:1,borderRadius:4}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{...btt,callbacks:{label:function(ctx){return ' '+fmtR(ctx.parsed.x)+' — '+tc10[ctx.dataIndex].orders+' pedido(s)';},}}},
+      scales:{x:{ticks:{color:tc,font:tf,callback:function(v){return 'R$'+v.toLocaleString('pt-BR');}},grid:{color:gc}},y:{ticks:{color:'#7E8799',font:{family:'JetBrains Mono, monospace',size:8}},grid:{display:false}}}
+    }
+  });
+
+  var dm={};var now=new Date();now.setHours(0,0,0,0);
+  var d14=[];
+  for(var d=13;d>=0;d--){var dd=new Date(now);dd.setDate(dd.getDate()-d);var k=dd.toLocaleDateString('pt-BR');d14.push(k);dm[k]=0;}
+  sales.forEach(function(m){var dk=(m.date||'').split(' ')[0];if(dm[dk]!==undefined)dm[dk]++;});
+  var ctx3=document.getElementById('chartOrders').getContext('2d');
+  var g3=ctx3.createLinearGradient(0,0,0,130);g3.addColorStop(0,'rgba(0,201,167,.28)');g3.addColorStop(1,'rgba(0,201,167,0)');
+  mkChart('chartOrders',{
+    type:'line',
+    data:{labels:d14.map(function(d){return d.slice(0,5);}),datasets:[{data:d14.map(function(d){return dm[d]||0;}),borderColor:'#00C9A7',backgroundColor:g3,tension:.4,fill:true,pointRadius:3,pointHoverRadius:6,pointBackgroundColor:'#00C9A7',borderWidth:2}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{...btt,callbacks:{label:function(ctx){return ' '+ctx.parsed.y+' pedido(s)';},}}},
+      scales:{x:{ticks:{color:tc,font:tf,maxTicksLimit:7},grid:{color:gc}},y:{ticks:{color:tc,font:tf,stepSize:1},grid:{color:gc},beginAtZero:true}}
+    }
+  });
+
+  document.getElementById('feedSales').innerHTML=sales.length
+    ?sales.slice(0,6).map(function(m){
+      return '<div class="feed-row"><div class="feed-icon">🛒</div><div class="feed-info"><div class="feed-prod">'+short(m.productName,32)+'</div><div class="feed-meta">'+(m.client&&m.client!=='—'?m.client+' · ':'')+((m.date||'').split(' ')[0])+' · '+m.qty+' un. · '+(m.pay||'—')+'</div></div><div class="feed-val">'+fmtR(m.total)+'</div></div>';
+    }).join('')
+    :'<div class="empty">Nenhuma venda ainda</div>';
+
+  var sw=document.getElementById('stockWrap');
+  if(low.length){
+    if(!document.getElementById('chartStock')){sw.innerHTML='<canvas id="chartStock"></canvas>';}
+    var sc=low.slice(0,8);
+    var scol=sc.map(function(p){return(parseInt(p.qty)||0)===0?'rgba(255,77,77,.7)':'rgba(240,180,41,.7)';});
+    var sbrd=sc.map(function(p){return(parseInt(p.qty)||0)===0?'#FF4D4D':'#F0B429';});
+    mkChart('chartStock',{
+      type:'bar',
+      data:{labels:sc.map(function(p){return short(p.name,12);}),datasets:[{data:sc.map(function(p){return parseInt(p.qty)||0;}),backgroundColor:scol,borderColor:sbrd,borderWidth:1,borderRadius:4}]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{...btt,callbacks:{label:function(ctx){return ' '+ctx.parsed.y+' un. em estoque';},}}},
+        scales:{x:{ticks:{color:'#7E8799',font:{family:'JetBrains Mono, monospace',size:8}},grid:{display:false}},y:{ticks:{color:tc,font:tf,stepSize:1},grid:{color:gc},beginAtZero:true}}
+      }
+    });
+  } else {
+    if(_charts['chartStock']){try{_charts['chartStock'].destroy();}catch(e){}delete _charts['chartStock'];}
+    sw.innerHTML='<div class="empty" style="color:var(--green)">✅ Estoque saudável!</div>';
+  }
+
+  var reviewData=[9,0,0,0,0];
+  var reviewLabels=['5 ★','4 ★','3 ★','2 ★','1 ★'];
+  var reviewColors=['#F0B429','#F0B42999','#F0B42966','#F0B42944','#F0B42933'];
+  mkChart('chartReviews',{
+    type:'bar',
+    data:{labels:reviewLabels,datasets:[{data:reviewData,backgroundColor:reviewColors,borderColor:reviewColors.map(function(x){return x.slice(0,7);}),borderWidth:1,borderRadius:3}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{...btt,callbacks:{label:function(ctx){return ' '+ctx.parsed.x+' avaliação(es)';},}}},
+      scales:{x:{max:9,ticks:{color:tc,font:tf,stepSize:3},grid:{color:gc}},y:{ticks:{color:'#F0B429',font:{family:'JetBrains Mono, monospace',size:11,weight:'bold'}},grid:{display:false}}}
+    }
+  });
+
+  var totalRev=sales.reduce(function(s,m){return s+(m.total||0);},0);
+  var pct=metaAnual>0?Math.min(totalRev/metaAnual*100,100):0;
+  var pctDisplay=metaAnual>0?(totalRev/metaAnual*100).toFixed(1):'--';
+  var remaining=metaAnual>0?Math.max(0,metaAnual-totalRev):0;
+  var metaColor=pct>=70?'#22C55E':pct>=30?'#F0B429':'#FF4D4D';
+
+  document.getElementById('metaPct').textContent=metaAnual>0?pctDisplay+'%':'Sem meta';
+  document.getElementById('metaPct').style.color=metaAnual>0?metaColor:'var(--text3)';
+
+  if(metaAnual>0){
+    mkChart('chartMeta',{
+      type:'doughnut',
+      data:{
+        labels:['Realizado','Restante'],
+        datasets:[{data:[Math.min(totalRev,metaAnual),remaining],backgroundColor:[metaColor+'CC','rgba(255,255,255,.05)'],borderColor:[metaColor,'rgba(255,255,255,.08)'],borderWidth:2,hoverOffset:4}]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,cutout:'65%',
+        plugins:{
+          legend:{display:true,position:'bottom',labels:{color:'#7E8799',font:{family:'JetBrains Mono, monospace',size:9},boxWidth:8,padding:8}},
+          tooltip:{...btt,callbacks:{label:function(ctx){return ' '+ctx.label+': '+fmtR(ctx.parsed);}}}
+        }
+      }
+    });
+    setTimeout(function(){var pc=document.getElementById('metaPct');if(pc){pc.textContent=pctDisplay+'%';pc.style.color=metaColor;}},100);
+  } else {
+    if(_charts['chartMeta']){try{_charts['chartMeta'].destroy();}catch(e){}delete _charts['chartMeta'];}
+    document.getElementById('metaWrap').innerHTML='<div class="empty"><div style="text-align:center"><div style="font-size:24px;margin-bottom:8px">🎯</div><div style="color:var(--text3);font-size:11px">Defina a meta anual no sistema<br><span style="color:var(--text2);font-size:10px">Config → Meta Anual (R$)</span></div></div></div>';
+  }
+
+  var items=[
+    '📦 Produtos: <b>'+products.length+'</b>',
+    '🛒 Pedidos: <b>'+sales.length+'</b>',
+    '👥 Clientes: <b>'+customers.length+'</b>',
+    '⚠️ Est. Crítico: <b>'+low.length+' item(ns)</b>',
+    '💰 Receita Acumulada: <b>'+fmtR(totalRev)+'</b>',
+    metaAnual>0?'🎯 Meta Anual: <b>'+pctDisplay+'% atingida</b>':'🎯 Meta Anual: <b>Não definida</b>',
+    '🏆 Top Produto: <b>'+(tp[0]?short(tp[0].name,22):'—')+'</b>',
+    '👑 Top Cliente: <b>'+(tc10[0]?short(tc10[0].name,22):'—')+'</b>',
+    '📅 Atualizado: <b>'+new Date().toLocaleTimeString('pt-BR')+'</b>',
+    '📍 São Luís – MA &nbsp;·&nbsp; CNPJ 35.744.273/0001-25',
+  ];
+  document.getElementById('tickerInner').innerHTML=[...items,...items].map(function(t){
+    return '<div class="ti">'+t+'<span style="color:var(--text3);margin-left:14px">◆</span></div>';
+  }).join('');
+}
+
+function hash(){
+  try{
+    var m=localStorage.getItem(KEYS.movements)||'';
+    var p=localStorage.getItem(KEYS.products)||'';
+    var mt=localStorage.getItem(KEYS.meta)||'0';
+    var cu=localStorage.getItem(KEYS.customers)||'';
+    var prods=[];try{prods=JSON.parse(p)||[];}catch(ee){}
+    var qtySum=prods.reduce(function(s,x){return s+(parseInt(x.qty)||0);},0);
+    return m.length+'|'+p.length+'|'+mt+'|'+cu.length+'|'+qtySum+'|'+m.slice(-80);
+  }catch(e){return '';}
+}
+var prev='';
+function check(){
+  var h=hash();
+  if(h!==prev){prev=h;render();var f=document.getElementById('flash');f.classList.add('on');setTimeout(function(){f.classList.remove('on');},2200);}
+}
+render();prev=hash();
+setInterval(check,3000);
+window.addEventListener('storage',function(e){
+  if([KEYS.products,KEYS.movements,KEYS.customers,KEYS.meta].indexOf(e.key)>=0)check();
+});
+
+var _tvCh=(function(){try{return new BroadcastChannel('mytec_tv');}catch(e){return null;}})();
+function _flashSync(){var f=document.getElementById('flash');if(f){f.classList.add('on');setTimeout(function(){f.classList.remove('on');},1800);}}
+function _showTVConnected(){
+  var el=document.getElementById('tvConnectStatus');
+  if(!el)return;
+  el.style.opacity='1';
+  clearTimeout(el._t);
+  el._t=setTimeout(function(){el.style.opacity='.35';},7000);
+}
+if(_tvCh){
+  _tvCh.onmessage=function(e){
+    var key=e.data&&e.data.key;
+    if(['mytec_products','mytec_movements','mytec_customers','mytec_meta_anual'].indexOf(key)>=0){
+      check();_flashSync();_showTVConnected();
+    }
+    if(key==='__ping__'||key==='__sync__'){
+      _tvCh.postMessage({key:'__pong__',ts:Date.now()});
+      _showTVConnected();
+    }
+  };
+  setTimeout(function(){_tvCh.postMessage({key:'__pong__',ts:Date.now()});},800);
+  setInterval(function(){_tvCh.postMessage({key:'__pong__',ts:Date.now()});},5000);
+}
+</script>
+</body>
+</html>

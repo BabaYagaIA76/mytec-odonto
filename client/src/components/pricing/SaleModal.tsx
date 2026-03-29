@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePricing } from '@/contexts/PricingContext';
 import { calcCostWithTax, calcPrice, fmtBRL } from '@/lib/pricingCalc';
 import type { Product } from '@/lib/pricingStorage';
@@ -45,7 +46,7 @@ export default function SaleModal({ product, onClose }: Props) {
     onClose();
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
         <div className="flex items-center justify-between mb-5">
@@ -142,6 +143,7 @@ export default function SaleModal({ product, onClose }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
